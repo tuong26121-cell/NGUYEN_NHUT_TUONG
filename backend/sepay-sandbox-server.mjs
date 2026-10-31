@@ -106,7 +106,7 @@ export function createSandboxHandler({ env = process.env, fetchImpl = globalThis
       if (!env.SEPAY_WEBHOOK_SECRET || env.SEPAY_WEBHOOK_SECRET.length < 32) {
         return reply(res, 503, { error: "webhook_not_configured" });
       }
-      if (!/^application\\/json(?:\\s*;|$)/i.test(String(req.headers["content-type"] || ""))) {
+      if (!/^application\/json(?:\s*;|$)/i.test(String(req.headers["content-type"] || ""))) {
         return reply(res, 415, { error: "unsupported_media_type" });
       }
       let body;
