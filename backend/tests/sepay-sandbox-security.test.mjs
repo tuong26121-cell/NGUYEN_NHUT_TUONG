@@ -252,5 +252,4 @@ test("sandbox HTTP server applies bounded request/header/keep-alive settings", (
   assert.equal(server.headersTimeout, 10_000);
   assert.equal(server.keepAliveTimeout, 5_000);
   assert.equal(server.maxHeadersCount, 50);
-  server.close();
 });
