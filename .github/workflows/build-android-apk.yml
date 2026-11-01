@@ -1,20 +1,27 @@
-name: Build NhTBank demo APK
+name: Build NhTBank Android Debug APK
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches:
+      - 'build-apk/**'
     paths:
       - 'frontend/**'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/build-android-apk.yml'
+permissions:
+  contents: read
+concurrency:
+  group: nhtbank-apk-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
-  android:
+  android-debug:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -23,16 +30,15 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-      - name: Check Android SDK on runner
-        run: |
-          test -n "$ANDROID_HOME"
-          test -d "$ANDROID_HOME"
-          echo "Android SDK: $ANDROID_HOME"
-      - name: Build web
+      - name: Verify Android SDK
+        run: test -d "$ANDROID_HOME"
+      - name: Install and test
         run: |
           npm ci
-          npm run build
-      - name: Add Capacitor Android shell
+          npm test
+      - name: Build Vite web assets
+        run: npm run build
+      - name: Prepare isolated Capacitor Android project
         run: |
           npm install --no-save --package-lock=false @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
           cat > capacitor.config.json <<'EOF'
@@ -40,28 +46,29 @@ jobs:
             "appId": "vn.nhtbank.demo",
             "appName": "NhTBank Demo",
             "webDir": "dist",
-            "server": { "androidScheme": "https" }
+            "server": {"androidScheme": "https"}
           }
           EOF
           npx cap add android
           npx cap sync android
-      - name: Compile debug APK
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v4
+      - name: Build debug APK
         working-directory: android
-        run: chmod +x gradlew && ./gradlew assembleDebug --no-daemon
-      - name: Prepare named APK
-        run: cp android/app/build/outputs/apk/debug/app-debug.apk NhTBank-Demo.apk
-      - name: Upload APK
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+      - name: Verify APK and checksum
+        run: |
+          test -s android/app/build/outputs/apk/debug/app-debug.apk
+          mkdir -p apk-output
+          cp android/app/build/outputs/apk/debug/app-debug.apk apk-output/NhTBank-Debug.apk
+          (cd apk-output && sha256sum NhTBank-Debug.apk > SHA256SUMS.txt)
+          cat apk-output/SHA256SUMS.txt
+      - name: Upload debug artifact
         uses: actions/upload-artifact@v4
         with:
-          name: NhTBank-Demo-Android-APK
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: NhTBank-Android-Debug-${{ github.sha }}
+          path: apk-output/
           if-no-files-found: error
-      - name: Publish downloadable APK release
-        if: github.ref == 'refs/heads/main'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          if ! gh release view demo-apk-latest >/dev/null 2>&1; then
-            gh release create demo-apk-latest --target "$GITHUB_SHA" --title "NhTBank Demo Android APK" --notes "Ứng dụng mô phỏng. Không thực hiện giao dịch tiền thật." --prerelease
-          fi
-          gh release upload demo-apk-latest NhTBank-Demo.apk --clobber
+          retention-days: 7
