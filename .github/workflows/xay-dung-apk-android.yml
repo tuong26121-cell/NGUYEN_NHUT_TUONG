@@ -1,0 +1,87 @@
+name: Xay dung APK Android NhTBank
+run-name: APK Android thu nghiem - ${{ github.ref_name }} - ${{ github.actor }}
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'vite.config.js'
+      - 'capacitor.config.json'
+      - '.github/workflows/xay-dung-apk-android.yml'
+permissions:
+  contents: read
+concurrency:
+  group: nhtbank-apk-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  android:
+    name: Xay dung APK Android
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Lay ma nguon
+        uses: actions/checkout@v4
+      - name: Cai dat Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Cai dat Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Cai dat va kiem thu
+        run: |
+          npm ci
+          npm test
+      - name: Xay dung tai nguyen web
+        run: npm run build
+      - name: Chuan bi du an Android Capacitor
+        run: |
+          npm install --no-save --package-lock=false @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
+          npx cap add android
+          npx cap sync android
+      - name: Kiem tra Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v4
+      - name: Bien dich APK thu nghiem
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+      - name: Kiem tra APK va ma SHA256
+        env:
+          BUILD_SHA: ${{ github.sha }}
+        run: |
+          test -s android/app/build/outputs/apk/debug/app-debug.apk
+          unzip -tq android/app/build/outputs/apk/debug/app-debug.apk
+          mkdir -p goi-apk
+          cp android/app/build/outputs/apk/debug/app-debug.apk goi-apk/NhTBank-ThuNghiem.apk
+          cd goi-apk
+          sha256sum NhTBank-ThuNghiem.apk | tee ma-kiem-tra-sha256.txt
+          printf 'Ma commit: %s\nLoai ban dung: debug\nUng dung: vn.nhtbank.demo\n' "$BUILD_SHA" > thong-tin-ban-dung.txt
+      - name: Tom tat va huong dan tai APK
+        env:
+          BUILD_SHA: ${{ github.sha }}
+        run: |
+          {
+            printf '## APK Android NhTBank thu nghiem\n\n'
+            printf 'Ma commit: `%s`\n\n' "$BUILD_SHA"
+            printf 'Tai **NhTBank-APK-ThuNghiem** trong muc Artifacts cua lan chay nay (luu 14 ngay).\n\n'
+            printf 'Giai nen ZIP, sau do cai `NhTBank-ThuNghiem.apk` tren thiet bi Android thu nghiem.\n\n'
+            printf 'Chi mo phong Sandbox. APK thu nghiem, chua phai ban phat hanh Google Play. Khong giao dich ngan hang that.\n\n'
+            printf 'Kiem tra tep da giai nen bang `sha256sum -c ma-kiem-tra-sha256.txt`:\n\n```text\n'
+            cat goi-apk/ma-kiem-tra-sha256.txt
+            printf '```\n'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Tai len APK va ma SHA256
+        uses: actions/upload-artifact@v4
+        with:
+          name: NhTBank-APK-ThuNghiem
+          path: |
+            goi-apk/
+          if-no-files-found: error
+          retention-days: 14

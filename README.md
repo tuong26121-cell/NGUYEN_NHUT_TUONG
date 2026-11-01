@@ -21,14 +21,14 @@ GitHub Pages dùng workflow `Deploy NhTBank to GitHub Pages`: cài npm, chạy k
 
 ## Chạy cục bộ
 
-### Xây dựng app APK Android
+### Xay dung ung dung APK Android
 
-[Mở trang build APK Android](https://github.com/tuong26121-cell/Ngan_hang_NhTBank/actions/workflows/build-android-apk.yml).
+[Mo trang xay dung APK Android](https://github.com/tuong26121-cell/Ngan_hang_NhTBank/actions/workflows/xay-dung-apk-android.yml).
 
 1. Đăng nhập GitHub bằng tài khoản có quyền chạy Actions của repository.
-2. Chọn **Build NhTBank Debug APK → Run workflow → Branch: main → Run workflow**. Thao tác này sử dụng tài nguyên GitHub Actions; kiểm tra hạn mức tài khoản trước khi chạy.
-3. Chờ run thành công, mở phần **Artifacts**, tải **NhTBank-Debug-APK** (cần đăng nhập GitHub; lưu 14 ngày).
-4. Giải nén và cài `NhTBank-Demo-debug.apk` trên thiết bị Android thử nghiệm. `build-info.txt` ghi commit nguồn; chạy `sha256sum -c apk-sha256.txt` trong thư mục giải nén để kiểm tra checksum.
+2. Chọn **Xay dung APK Android NhTBank → Run workflow → Branch: main → Run workflow**. Thao tác này sử dụng tài nguyên GitHub Actions; kiểm tra hạn mức tài khoản trước khi chạy.
+3. Chờ run thành công, mở phần **Artifacts**, tải **NhTBank-APK-ThuNghiem** (cần đăng nhập GitHub; lưu 14 ngày).
+4. Giải nén và cài `NhTBank-ThuNghiem.apk` trên thiết bị Android thử nghiệm. `thong-tin-ban-dung.txt` ghi commit nguồn; chạy `sha256sum -c ma-kiem-tra-sha256.txt` trong thư mục giải nén để kiểm tra checksum.
 
 Đây là APK **Debug/Sandbox**, chưa phải bản phát hành Google Play và chưa thay thế kiểm thử trên điện thoại thật. Workflow chạy unit test, build web tại đường dẫn gốc để đóng gói nội bộ, tạo shell Capacitor, kiểm tra Gradle wrapper, biên dịch và kiểm tra ZIP của APK. Không tự đăng Release hoặc triển khai website. Tạo tài khoản demo bằng tên đăng nhập và mật khẩu; PIN `123456` chỉ xác nhận chuyển tiền mô phỏng.
 
