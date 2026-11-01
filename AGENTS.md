@@ -1,5 +1,7 @@
 # NhTBank — hướng dẫn làm việc
 
+- Tên mới do dự án tự đặt (nhánh Git, thư mục, tệp, mục workflow và gói tải về) dùng tiếng Việt không dấu; đường dẫn dùng chữ thường và dấu gạch nối. Giữ tên thương hiệu, tên chuẩn của công cụ, khóa cấu hình và đường dẫn đầu ra do công cụ yêu cầu. Khi đổi tên phải cập nhật các tham chiếu; không tự đổi toàn bộ tệp cũ ngoài phạm vi nhiệm vụ.
+
 - Đây là ứng dụng ngân hàng **mô phỏng**. Không kết nối dịch vụ chuyển tiền, thanh toán thật, xác thực ngân hàng thật hoặc thu thập thông tin nhạy cảm.
 - Làm việc trên nhánh tính năng, không ghi trực tiếp vào nhánh mặc định `main`. Dùng checkout hiện tại; không tạo worktree nếu người dùng chưa yêu cầu.
 - Frontend: React 18, TailwindCSS, Framer Motion; các component đặt trong `frontend/src/components`, logic nghiệp vụ trong `frontend/src/lib`.

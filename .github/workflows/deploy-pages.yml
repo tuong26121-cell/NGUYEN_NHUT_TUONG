@@ -45,7 +45,8 @@ jobs:
           path: dist
 
   deploy:
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    # APK-only merges may build without deploying the public website.
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && !contains(github.event.head_commit.message, '[khong-trien-khai-web]')
     needs: build
     runs-on: ubuntu-latest
     permissions:
